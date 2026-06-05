@@ -1,4 +1,12 @@
 
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1A1209">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Jamal Tracker</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -8,17 +16,50 @@
     --j-dark: #1A1209;
     --j-card: #FBF7F0;
     --j-border: rgba(0,0,0,0.1);
+    --color-background-primary: #fffaf2;
+    --color-background-secondary: #f4eadc;
+    --color-page-surround: #dfcfb9;
+    --color-text-primary: #1A1209;
+    --color-text-secondary: #6e6152;
+    --color-border-secondary: rgba(26,18,9,0.18);
+    --border-radius-md: 8px;
+    --border-radius-lg: 10px;
   }
-  body { font-family: 'DM Sans', sans-serif; background: transparent; }
-  #app { padding: 0 0 2rem; }
+  html {
+    min-height: 100%;
+    background: var(--color-page-surround);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  body {
+    min-width: 0;
+    min-height: 100%;
+    overflow-x: hidden;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--color-page-surround);
+    color: var(--color-text-primary);
+  }
+  button, input, select {
+    font: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button { touch-action: manipulation; }
+  #app {
+    width: min(100%, 720px);
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0 auto;
+    padding: 0 0 calc(2rem + env(safe-area-inset-bottom));
+    overflow-x: hidden;
+    background: var(--color-background-primary);
+  }
   .jt-header {
     background: var(--j-dark);
     color: white;
-    padding: 1.25rem 1.5rem 1rem;
+    padding: calc(1.25rem + env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) 1rem max(1rem, env(safe-area-inset-left));
     display: flex;
     align-items: center;
     gap: 1rem;
-    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
     position: relative;
     overflow: hidden;
   }
@@ -31,9 +72,10 @@
     border-radius: 50%;
     opacity: 0.15;
   }
-  .jt-logo { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 2px; color: var(--j-yellow); line-height: 1; }
+  .jt-header > div:not(.live-badge) { min-width: 0; }
+  .jt-logo { font-family: 'Bebas Neue', sans-serif; font-size: clamp(28px, 8vw, 36px); letter-spacing: 2px; color: var(--j-yellow); line-height: 1; white-space: nowrap; }
   .jt-subtitle { font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
-  .radar-icon { font-size: 28px; color: var(--j-orange); animation: spin 4s linear infinite; display: inline-block; }
+  .radar-icon { font-size: 28px; color: var(--j-orange); animation: spin 4s linear infinite; display: inline-block; flex: 0 0 auto; }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   .live-badge {
     margin-left: auto;
@@ -47,19 +89,22 @@
     display: flex;
     align-items: center;
     gap: 5px;
+    flex: 0 0 auto;
   }
   .live-dot { width: 6px; height: 6px; background: white; border-radius: 50%; animation: pulse 1.2s ease-in-out infinite; }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
   .site-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0;
     border-bottom: 1px solid var(--j-border);
     background: var(--color-background-primary);
   }
   .site-btn {
     padding: 10px 4px;
+    min-width: 0;
+    min-height: 58px;
     border: none;
     border-right: 0.5px solid var(--j-border);
     background: transparent;
@@ -75,13 +120,13 @@
   .site-btn:last-child { border-right: none; }
   .site-btn:hover { background: var(--color-background-secondary); }
   .site-btn.active { background: #FFF3E0; }
-  .site-name { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; color: var(--color-text-primary); }
-  .site-count { font-size: 10px; color: var(--color-text-secondary); }
+  .site-name { font-family: 'Bebas Neue', sans-serif; font-size: clamp(14px, 4.2vw, 16px); letter-spacing: 1px; color: var(--color-text-primary); }
+  .site-count { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; color: var(--color-text-secondary); }
   .jamal-here { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: #4CAF50; border-radius: 50%; box-shadow: 0 0 0 2px white; }
 
   .controls {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 8px;
     padding: 12px;
     background: var(--color-background-secondary);
@@ -90,17 +135,20 @@
   .ctrl-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
   select, input[type=text] {
     width: 100%;
-    padding: 7px 10px;
+    min-height: 44px;
+    padding: 9px 10px;
     border: 0.5px solid var(--color-border-secondary);
     border-radius: var(--border-radius-md);
     font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
+    font-size: 16px;
     background: var(--color-background-primary);
     color: var(--color-text-primary);
   }
   .btn-row { grid-column: 1 / -1; display: flex; gap: 8px; }
   .btn-spot {
     flex: 1;
+    min-width: 0;
+    min-height: 44px;
     padding: 9px;
     border: none;
     border-radius: var(--border-radius-md);
@@ -115,6 +163,8 @@
   .btn-spot:hover { opacity: 0.9; transform: scale(1.01); }
   .btn-move {
     flex: 1;
+    min-width: 0;
+    min-height: 44px;
     padding: 9px;
     border: 0.5px solid var(--j-orange);
     border-radius: var(--border-radius-md);
@@ -127,6 +177,18 @@
     transition: background 0.15s;
   }
   .btn-move:hover { background: rgba(232,82,26,0.07); }
+  .btn-gone {
+    flex: 1;
+    min-height: 44px;
+    padding: 9px;
+    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-secondary);
+    background: var(--color-background-secondary);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    color: var(--color-text-secondary);
+  }
 
   .tabs {
     display: flex;
@@ -135,7 +197,9 @@
   }
   .tab {
     flex: 1;
-    padding: 9px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 9px 6px;
     border: none;
     background: transparent;
     font-family: 'DM Sans', sans-serif;
@@ -165,6 +229,7 @@
     flex-shrink: 0;
   }
   .feed-content { flex: 1; }
+  .feed-content, .feed-main, .lb-name, #status-text { min-width: 0; overflow-wrap: anywhere; }
   .feed-main { font-size: 13px; color: var(--color-text-primary); line-height: 1.4; }
   .feed-main strong { color: var(--j-orange); font-weight: 600; }
   .feed-meta { font-size: 11px; color: var(--color-text-secondary); margin-top: 3px; }
@@ -211,7 +276,7 @@
 
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
     padding: 12px;
   }
@@ -226,16 +291,20 @@
 
   .toast {
     position: fixed;
-    bottom: 20px; left: 50%;
-    transform: translateX(-50%) translateY(60px);
+    bottom: calc(20px + env(safe-area-inset-bottom)); left: 50%;
+    transform: translateX(-50%) translateY(calc(100% + 32px + env(safe-area-inset-bottom)));
     background: var(--j-dark);
     color: white;
     padding: 10px 18px;
     border-radius: 20px;
     font-size: 13px;
     font-weight: 500;
-    white-space: nowrap;
+    width: max-content;
+    max-width: calc(100vw - 32px - env(safe-area-inset-left) - env(safe-area-inset-right));
+    text-align: center;
+    overflow-wrap: anywhere;
     transition: transform 0.35s cubic-bezier(.34,1.56,.64,1);
+    will-change: transform;
     z-index: 99;
     pointer-events: none;
   }
@@ -255,7 +324,73 @@
   .lb-count { font-family: 'Bebas Neue', sans-serif; font-size: 15px; color: var(--j-orange); }
 
   .nickname-wrap { grid-column: 1 / -1; }
+
+  @media (max-width: 430px) {
+    #app {
+      width: 100%;
+    }
+    .jt-header {
+      gap: 0.7rem;
+      border-radius: 0;
+    }
+    .jt-subtitle {
+      font-size: 10px;
+      letter-spacing: 0.7px;
+      white-space: nowrap;
+    }
+    .live-badge {
+      font-size: 9px;
+      letter-spacing: 1px;
+      padding: 3px 6px;
+    }
+    .controls {
+      grid-template-columns: 1fr;
+      padding: 12px max(12px, env(safe-area-inset-right)) 12px max(12px, env(safe-area-inset-left));
+    }
+    .btn-row {
+      flex-direction: column;
+    }
+    .btn-spot,
+    .btn-move,
+    .btn-gone {
+      width: 100%;
+      font-size: 18px;
+    }
+    .status-bar {
+      align-items: center;
+      flex-wrap: wrap;
+      padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right));
+    }
+    #last-seen {
+      flex-basis: 100%;
+      margin-left: 15px !important;
+    }
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .jt-logo {
+      font-size: 26px;
+      letter-spacing: 1.5px;
+    }
+    .radar-icon {
+      font-size: 24px;
+    }
+    .site-btn {
+      padding-inline: 2px;
+    }
+    .site-count {
+      font-size: 9px;
+    }
+    .tab {
+      font-size: 11px;
+    }
+  }
 </style>
+</head>
+<body>
 
 <div id="app">
   <div class="jt-header">
@@ -284,15 +419,33 @@
       <div class="ctrl-label">Spotted at</div>
       <select id="sel-site">
         <option value="">-- pick a site --</option>
-        <option>ATL77</option><option>ATL68</option><option>ATL73</option><option>ATL74</option><option>ATL76</option>
+          <option>ATL68</option>
+          <option>ATL72</option>
+          <option>ATL73</option>
+          <option>ATL74</option>
+          <option>ATL75</option>
+          <option>ATL76</option>
+          <option>ATL77</option>
+          <option>ATL78</option>
+          <option>ATL85</option>
+          <option>ATL88</option>
       </select>
     </div>
     <div>
       <div class="ctrl-label">Heading to (move only)</div>
       <select id="sel-dest">
         <option value="">-- destination --</option>
-        <option>ATL77</option><option>ATL68</option><option>ATL73</option><option>ATL74</option><option>ATL76</option>
-        <option>Unknown</option>
+          <option>Unknown</option>
+          <option>ATL68</option>
+          <option>ATL72</option>
+          <option>ATL73</option>
+          <option>ATL74</option>
+          <option>ATL75</option>
+          <option>ATL76</option>
+          <option>ATL77</option>
+          <option>ATL78</option>
+          <option>ATL85</option>
+          <option>ATL88</option>
       </select>
     </div>
     <div class="btn-row">
@@ -300,7 +453,7 @@
       <button class="btn-move" onclick="reportMove()"><i class="ti ti-run" aria-hidden="true"></i> HE'S MOVING</button>
     </div>
     <div class="btn-row" style="gap:8px">
-      <button style="flex:1;padding:7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);cursor:pointer;font-family:DM Sans,sans-serif;font-size:12px;color:var(--color-text-secondary);" onclick="reportGone()"><i class="ti ti-ghost" aria-hidden="true"></i> He left / can't find him</button>
+      <button class="btn-gone" onclick="reportGone()"><i class="ti ti-ghost" aria-hidden="true"></i> He left / can't find him</button>
     </div>
   </div>
 
@@ -310,7 +463,7 @@
     <button class="tab" onclick="switchTab('leaderboard',this)"><i class="ti ti-trophy" aria-hidden="true"></i> Spotters</button>
   </div>
 
-  <div id="tab-feed" class="feed" id="feed-list"></div>
+  <div id="tab-feed" class="feed"></div>
   <div id="tab-stats" style="display:none"></div>
   <div id="tab-leaderboard" style="display:none" class="leaderboard"></div>
 </div>
@@ -318,7 +471,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const SITES = ['ATL77','ATL68','ATL73','ATL74','ATL76'];
+const SITES = ['ATL68','ATL72','ATL73','ATL74','ATL75','ATL76','ATL77','ATL78','ATL85','ATL88'];
 const FUNNY = [
   "👀 All units be advised.",
   "🚨 Someone squeal on Jamal again.",
@@ -342,22 +495,43 @@ const MOVE_QUIPS = [
 ];
 
 let state = { current: null, lastSeen: null, events: [], siteCounts: {}, spotter: {} };
+const HAS_SHARED_API = location.protocol !== 'file:';
 
 async function load() {
   try {
-    const r = await window.storage.get('jt-state', true);
-    if (r && r.value) {
-      const loaded = JSON.parse(r.value);
+    if (HAS_SHARED_API) {
+      const r = await fetch('/api/state', { cache: 'no-store' });
+      if (!r.ok) throw new Error('Shared state unavailable');
+      const loaded = await r.json();
       state = { ...state, ...loaded };
+    } else if (window.storage) {
+      const r = await window.storage.get('jt-state', true);
+      if (r && r.value) {
+        const loaded = JSON.parse(r.value);
+        state = { ...state, ...loaded };
+      }
     }
-  } catch(e) {}
+  } catch(e) {
+    showToast('Shared Jamal data is offline right now.');
+  }
   renderAll();
 }
 
 async function save() {
   try {
-    await window.storage.set('jt-state', JSON.stringify(state), true);
-  } catch(e) {}
+    if (HAS_SHARED_API) {
+      const r = await fetch('/api/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(state)
+      });
+      if (!r.ok) throw new Error('Shared state save failed');
+    } else if (window.storage) {
+      await window.storage.set('jt-state', JSON.stringify(state), true);
+    }
+  } catch(e) {
+    showToast('Could not save shared Jamal data.');
+  }
 }
 
 function getName() {
@@ -371,6 +545,14 @@ function timeAgo(ts) {
   if (diff < 3600) return `${Math.round(diff/60)}m ago`;
   if (diff < 86400) return `${Math.round(diff/3600)}h ago`;
   return `${Math.round(diff/86400)}d ago`;
+}
+
+function formatTimestamp(ts) {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }).format(new Date(ts));
 }
 
 function pushEvent(evt) {
@@ -474,7 +656,7 @@ function renderFeed() {
       <div class="feed-avatar" style="background:${bg}20;color:${bg};font-size:13px;font-weight:600;">${initials}</div>
       <div class="feed-content">
         <div class="feed-main">${tag} ${main}</div>
-        <div class="feed-meta">${e.name} · ${timeAgo(e.ts)}</div>
+        <div class="feed-meta">${e.name} · ${timeAgo(e.ts)} · ${formatTimestamp(e.ts)}</div>
       </div>
     </div>`;
   }).join('');
@@ -567,3 +749,5 @@ function showToast(msg) {
 setInterval(() => { renderStatus(); renderFeed(); }, 15000);
 load();
 </script>
+</body>
+</html>
