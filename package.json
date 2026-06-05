@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "redis": "^5.0.0"
+  }
+}

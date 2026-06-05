@@ -1,3 +1,5 @@
+import { createClient } from 'redis';
+
 const EMPTY_STATE = {
   current: null,
   lastSeen: null,
@@ -9,12 +11,28 @@ const EMPTY_STATE = {
 const MAX_EVENTS = 80;
 const MAX_NAME_LENGTH = 24;
 const SITES = new Set(['ATL77', 'ATL68', 'ATL73', 'ATL74', 'ATL76', 'Unknown']);
+let redisClientPromise;
 
 function redisConfig() {
   return {
+    connectionString: process.env.REDIS_URL,
     url: process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL,
     token: process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
   };
+}
+
+async function getRedisClient() {
+  const { connectionString } = redisConfig();
+  if (!connectionString) {
+    throw new Error('Missing REDIS_URL');
+  }
+
+  if (!redisClientPromise) {
+    const client = createClient({ url: connectionString });
+    redisClientPromise = client.connect().then(() => client);
+  }
+
+  return redisClientPromise;
 }
 
 function todayKey() {
@@ -29,7 +47,20 @@ function todayKey() {
 }
 
 async function redis(command) {
-  const { url, token } = redisConfig();
+  const { connectionString, url, token } = redisConfig();
+
+  if (connectionString) {
+    const client = await getRedisClient();
+    const [name, key, value, option, ttl] = command;
+    if (name === 'GET') {
+      return client.get(key);
+    }
+    if (name === 'SET' && option === 'EX') {
+      return client.set(key, value, { EX: ttl });
+    }
+    throw new Error(`Unsupported Redis command: ${name}`);
+  }
+
   if (!url || !token) {
     throw new Error('Missing Redis environment variables');
   }
