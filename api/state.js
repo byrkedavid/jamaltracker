@@ -1,4 +1,4 @@
-const { createClient } = require('redis');
+import { createClient } from 'redis';
 
 const EMPTY_STATE = {
   current: null,
@@ -29,7 +29,16 @@ async function getRedisClient() {
 
   if (!redisClientPromise) {
     const client = createClient({ url: connectionString });
-    redisClientPromise = client.connect().then(() => client);
+    client.on('error', error => {
+      console.error('Redis client error', error);
+      redisClientPromise = undefined;
+    });
+    redisClientPromise = client.connect()
+      .then(() => client)
+      .catch(error => {
+        redisClientPromise = undefined;
+        throw error;
+      });
   }
 
   return redisClientPromise;
@@ -46,21 +55,24 @@ function todayKey() {
   return `jt-state:${get('year')}-${get('month')}-${get('day')}`;
 }
 
-async function redis(command) {
-  const { connectionString, url, token } = redisConfig();
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-  if (connectionString) {
-    const client = await getRedisClient();
-    const [name, key, value, option, ttl] = command;
-    if (name === 'GET') {
-      return client.get(key);
-    }
-    if (name === 'SET' && option === 'EX') {
-      return client.set(key, value, { EX: ttl });
-    }
-    throw new Error(`Unsupported Redis command: ${name}`);
+async function runRedisClientCommand(command) {
+  const client = await getRedisClient();
+  const [name, key, value, option, ttl] = command;
+  if (name === 'GET') {
+    return client.get(key);
   }
+  if (name === 'SET' && option === 'EX') {
+    return client.set(key, value, { EX: ttl });
+  }
+  throw new Error(`Unsupported Redis command: ${name}`);
+}
 
+async function runRestCommand(command) {
+  const { url, token } = redisConfig();
   if (!url || !token) {
     throw new Error('Missing Redis environment variables');
   }
@@ -83,6 +95,26 @@ async function redis(command) {
     throw new Error(data.error);
   }
   return data.result;
+}
+
+async function redis(command) {
+  const { connectionString } = redisConfig();
+  const runCommand = connectionString ? runRedisClientCommand : runRestCommand;
+  let lastError;
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await runCommand(command);
+    } catch (error) {
+      lastError = error;
+      redisClientPromise = undefined;
+      if (attempt === 0) {
+        await wait(120);
+      }
+    }
+  }
+
+  throw lastError;
 }
 
 function cleanName(name) {
@@ -145,7 +177,7 @@ async function parseBody(req) {
   }
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   const key = todayKey();
 
   try {
@@ -171,4 +203,4 @@ module.exports = async function handler(req, res) {
       detail: process.env.NODE_ENV === 'production' ? undefined : error.message
     });
   }
-};
+}

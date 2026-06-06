@@ -497,6 +497,10 @@ const MOVE_QUIPS = [
 let state = { current: null, lastSeen: null, events: [], siteCounts: {}, spotter: {} };
 const HAS_SHARED_API = location.protocol !== 'file:';
 
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function load() {
   try {
     if (HAS_SHARED_API) {
@@ -520,12 +524,17 @@ async function load() {
 async function save() {
   try {
     if (HAS_SHARED_API) {
-      const r = await fetch('/api/state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(state)
-      });
-      if (!r.ok) throw new Error('Shared state save failed');
+      let response;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        response = await fetch('/api/state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(state)
+        });
+        if (response.ok) break;
+        await wait(180);
+      }
+      if (!response.ok) throw new Error('Shared state save failed');
     } else if (window.storage) {
       await window.storage.set('jt-state', JSON.stringify(state), true);
     }
