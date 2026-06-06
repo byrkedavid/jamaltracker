@@ -1,4 +1,4 @@
-import { createClient } from 'redis';
+const { createClient } = require('redis');
 
 const EMPTY_STATE = {
   current: null,
@@ -133,7 +133,19 @@ function sanitizeState(input) {
   };
 }
 
-export default async function handler(req, res) {
+async function parseBody(req) {
+  if (!req.body || typeof req.body === 'object') {
+    return req.body || {};
+  }
+
+  try {
+    return JSON.parse(req.body);
+  } catch (error) {
+    return {};
+  }
+}
+
+module.exports = async function handler(req, res) {
   const key = todayKey();
 
   try {
@@ -144,7 +156,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      const nextState = sanitizeState(req.body);
+      const nextState = sanitizeState(await parseBody(req));
       await redis(['SET', key, JSON.stringify(nextState), 'EX', 172800]);
       res.setHeader('Cache-Control', 'no-store');
       return res.status(200).json(nextState);
@@ -153,6 +165,10 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'GET, POST');
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error) {
-    return res.status(500).json({ error: 'Shared state unavailable' });
+    console.error(error);
+    return res.status(500).json({
+      error: 'Shared state unavailable',
+      detail: process.env.NODE_ENV === 'production' ? undefined : error.message
+    });
   }
-}
+};
