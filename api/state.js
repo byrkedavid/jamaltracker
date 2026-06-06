@@ -10,7 +10,7 @@ const EMPTY_STATE = {
 
 const MAX_EVENTS = 80;
 const MAX_NAME_LENGTH = 24;
-const SITES = new Set(['ATL77', 'ATL68', 'ATL73', 'ATL74', 'ATL76', 'Unknown']);
+const SITES = new Set(['ATL68', 'ATL72', 'ATL73', 'ATL74', 'ATL75', 'ATL76', 'ATL77', 'ATL78', 'ATL85', 'ATL88', 'Unknown']);
 let redisClientPromise;
 
 function redisConfig() {

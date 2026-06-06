@@ -556,6 +556,10 @@ function timeAgo(ts) {
   return `${Math.round(diff/86400)}d ago`;
 }
 
+function displaySite(site) {
+  return site || 'Unknown';
+}
+
 function formatTimestamp(ts) {
   return new Intl.DateTimeFormat('en-US', {
     hour: 'numeric',
@@ -635,7 +639,7 @@ function renderStatus() {
   } else {
     const moving = state.events[0] && state.events[0].type === 'move';
     dot.className = moving ? 'status-dot orange' : 'status-dot';
-    txt.textContent = moving ? `In transit to ${state.events[0].to} — intercept if brave` : 'Location unknown — pray for intel';
+    txt.textContent = moving ? `In transit to ${displaySite(state.events[0].to)} — intercept if brave` : 'Location unknown — pray for intel';
   }
   ls.textContent = state.lastSeen ? `Last activity ${timeAgo(state.lastSeen)}` : '';
 }
@@ -650,13 +654,13 @@ function renderFeed() {
     let tag, main;
     if (e.type === 'spot') {
       tag = `<span class="tag tag-spot">SPOTTED</span>`;
-      main = `<strong>${e.site}</strong> — ${e.quip}`;
+      main = `<strong>${displaySite(e.site)}</strong> — ${e.quip}`;
     } else if (e.type === 'move') {
       tag = `<span class="tag tag-move">MOVING</span>`;
-      main = `<strong>${e.from}</strong> → <strong>${e.to}</strong> — ${e.quip}`;
+      main = `<strong>${displaySite(e.from)}</strong> → <strong>${displaySite(e.to)}</strong> — ${e.quip}`;
     } else {
       tag = `<span class="tag tag-gone">GONE</span>`;
-      main = `Last seen at <strong>${e.site}</strong> — ${e.quip}`;
+      main = `Last seen at <strong>${displaySite(e.site)}</strong> — ${e.quip}`;
     }
     const initials = (e.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const colors = ['#E8521A','#185FA5','#3B6D11','#993556','#534AB7'];
